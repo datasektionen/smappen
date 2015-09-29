@@ -1,0 +1,79 @@
+<head>
+  <title>smapp</title>
+</head>
+
+<body>
+  {{#if currentUser}}
+  	Welcome {{currentUser.username}}! <a class="logout" href="#">Logout</a>
+	{{else}}
+	  <a href="{{loginurl}}">KTH Login</a>
+	{{/if}}
+  {{> Router}}
+
+
+</body>
+
+<template name="plist">
+
+  <h1>{{evt.name}}</h1>
+  <p>Created by {{ event_owner.username }} </p>
+  {{#each pleads}}
+
+    {{#if equals type 'plead'}}
+      {{> plead}}
+    {{/if}}
+
+    {{#if equals type 'point'}}
+      {{> point}}
+    {{/if}}
+
+    <br>
+  {{/each}}
+
+  {{#if currentUser}}
+  {{> form}}
+  {{/if}}
+
+  {{#if ownEvent evt}}
+    {{> admin}}
+  {{/if}}
+</template>
+
+<template name="form">
+<form id="plead-form">
+  <input type=text name=name value="{{currentUser.username}}" disabled="disabled">
+  <input type=hidden name=event_code value="{{evt.code}}" >
+  <br>
+  <textarea name=text ></textarea><br>
+  <input type="text" name=imgurl placeholder="URL to image (optional)">
+  <input type="submit">
+</form>
+</template>
+
+
+<template name="admin">
+<input type="text" value="{{evt.name}}" class="txtName">
+<select name="state-selector">
+  <option value="halted">HALTED</option>
+  <option value="open">OPEN</option>
+</select>
+</template>
+
+
+<template name="plead">
+  {{#if image}}
+    <img src="{{image}}" >
+  {{/if}}
+  <p>{{text}} by {{creator.username}}</p>
+</template>
+
+<template name="point">
+
+  <h3>{{text}} by {{creator.username}}</h3>
+
+</template>
+
+
+<template name="index">
+  <p>Nothing to see here</p>
+</template>
