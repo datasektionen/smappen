@@ -33,6 +33,27 @@ var Mode = {
   OPEN: "open"
 }
 
+Date.prototype.xformat = function(format) //author: meizz
+{
+  var o = {
+    "M+" : this.getMonth()+1, //month
+    "d+" : this.getDate(),    //day
+    "h+" : this.getHours(),   //hour
+    "m+" : this.getMinutes(), //minute
+    "s+" : this.getSeconds(), //second
+    "q+" : Math.floor((this.getMonth()+3)/3),  //quarter
+    "S" : this.getMilliseconds() //millisecond
+  }
+
+  if(/(y+)/.test(format)) format=format.replace(RegExp.$1,
+    (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+  for(var k in o)if(new RegExp("("+ k +")").test(format))
+    format = format.replace(RegExp.$1,
+      RegExp.$1.length==1 ? o[k] :
+        ("00"+ o[k]).substr((""+ o[k]).length));
+  return format;
+}
+
 /***************************************************************
     ROUTES
 */
@@ -102,6 +123,10 @@ if (Meteor.isClient) {
       return a === b;
     });
 
+    Template.registerHelper('formatDate', function(date) {
+      return date.xformat("yyyy-MM-dd hh:mm:ss");
+    });
+
   Template.plist.events({
     "submit #plead-form": function(event) {
       event.preventDefault();
@@ -113,11 +138,19 @@ if (Meteor.isClient) {
         text: event.target.text.value,
         event_id: this.evt._id,
         image: event.target.imgurl.value,
-        createdAt: new Date()
+        createdAt: new Date(),
+        atts: [
+          {text:event.target.att0.value},
+          {text:event.target.att1.value},
+          {text:event.target.att2.value}
+        ]
       });
 
       event.target.text.value = "";
       event.target.imgurl.value = "";
+      event.target.att0.value = "";
+      event.target.att1.value = "";
+      event.target.att2.value = "";
     },
     "click .logout": function() {
       Meteor.logout()
@@ -158,7 +191,8 @@ if (Meteor.isClient) {
         type: Type.DECISION,
         creator: Meteor.user(),
         text: event.target.value,
-        event_id: this.evt._id
+        event_id: this.evt._id,
+        createdAt: new Date()
       });
 
       event.target.value = "";
@@ -169,7 +203,8 @@ if (Meteor.isClient) {
         type: Type.POINT,
         creator: Meteor.user(),
         text: event.target.value,
-        event_id: this.evt._id
+        event_id: this.evt._id,
+        createdAt: new Date()
       });
 
       event.target.value = "";

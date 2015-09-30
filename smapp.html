@@ -1,33 +1,88 @@
 <head>
-  <title>smapp</title>
+  <title>smapp</title
+  <link rel="stylesheet" type="text/css" href="/normalize.css">
+  <link rel="stylesheet" type="text/css" href="/foundation.min.css">
+  <script src="/foundation.min.js"></script>
 </head>
 
 <body>
-  {{#if currentUser}}
-  	Welcome {{currentUser.username}}! <a class="logout" href="#">Logout</a>
-	{{else}}
-	  <a href="{{loginurl}}">KTH Login</a>
-	{{/if}}
-  {{> Router}}
+  <nav class="top-bar" data-topbar role="navigation">
+  <ul class="title-area">
+    <li class="name">
+      <h1><a href="#">SMAP!</a></h1>
+    </li>
+     <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+    <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
+  </ul>
 
+  <section class="top-bar-section">
+    <!-- Right Nav Section -->
+    <ul class="right">
+      {{#if currentUser}}
+        <li><a class="logout" href="#">Welcome {{currentUser.username}}! Logout</a></li>
+    	{{else}}
+        <li class="active"><a href="{{loginurl}}">Login</a></li>
+      {{/if}}
+    </ul>
+  </section>
+</nav>
+
+  {{> Router}}
 
 </body>
 
 <template name="plist">
+<div class="row magnetron">
+  <div class="small-2 columns">
+    <img src="http://www.nada.kth.se/~lrunhem/skold.png">
+  </div>
+  <div class="small-10 columns">
 
-  <h1>{{evt.name}}</h1>
-  <p>Created by {{ event_owner.username }} </p>
-  {{#each pleads}}
-    {{> pleadenv}}
-  {{/each}}
+      <h1>{{evt.name}}</h1>
+      <p>by {{ event_owner.username }} </p>
 
-  {{#if currentUser}}
-  {{> form}}
-  {{/if}}
+  </div>
+</div>
+  <div class="row">
 
-  {{#if ownEvent evt}}
-    {{> admin}}
-  {{/if}}
+    <div class="small-12 columns">
+      <h2>Protokoll</h2>
+      {{#each pleads}}
+        <div class="row">
+          <div class="small-10 columns">
+            <div class="rightborder">
+              {{> pleadenv}}
+            </div>
+          </div>
+          <div class="small-2 columns">
+
+              <p class="meta-data">
+                {{ formatDate createdAt }}<br>
+                {{ creator.username }}
+              </p>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+    <hr>
+  </div>
+
+<div class="footer">
+  <div class="row footer">
+
+    <div class="small-6 columns">
+      <h3>Skicka in Yrkande</h3>
+      {{#if currentUser}}
+      {{> form}}
+      {{/if}}
+    </div>
+    <div class="small-6 columns ">
+        {{#if ownEvent}}
+          {{> admin}}
+        {{/if}}
+    </div>
+  </div>
+</div>
 </template>
 <template name="pleadenv">
   {{#if equals type 'plead'}}
@@ -41,56 +96,131 @@
   {{#if equals type 'decision' }}
     {{>decision}}
   {{/if}}
-      <br>
 </template>
 
 
 <template name="form">
 <form id="plead-form">
-  <input type=text name=name value="{{currentUser.username}}" disabled="disabled">
-  <input type=hidden name=event_code value="{{evt.code}}" >
-  <br>
-  <textarea name=text ></textarea><br>
-  <input type="text" name=imgurl placeholder="URL to image (optional)">
+  <div class="row">
+    <div class="large-12 columns">
+      <label>Skicka in som
+        <input type=text name=name value="{{currentUser.username}}" disabled="disabled" />
+      </label>
+    </div>
+  </div>
+  <div class="row">
+    <div class="large-12 columns">
+      <label>Bild-URL
+        <input type=text name=imgurl placeholder="Optional" />
+      </label>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="large-12 columns">
+      <label>Bakgrund
+        <textarea name=text placeholder="Vi har kämpat länge nog..."></textarea>
+      </label>
+    </div>
+  </div>
+
+  Jag yrkar på
+  <div class="row collapse">
+    <div class="small-3 large-2 columns">
+      <span class="prefix"><em>att</em></span>
+    </div>
+    <div class="small-9 large-10 columns">
+      <input name="att0" type="text" placeholder="vi ska vara seriösa">
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 large-2 columns">
+      <span class="prefix"><em>att</em></span>
+    </div>
+    <div class="small-9 large-10 columns">
+      <input name="att1" type="text" >
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-3 large-2 columns">
+      <span class="prefix"><em>att</em></span>
+    </div>
+    <div class="small-9 large-10 columns">
+      <input name="att2" type="text">
+    </div>
+  </div>
+
   {{#if isOpen}}
-  <input type="submit">
+  <input type="submit" class="button small">
+  {{else}}
+  <p>Sekreteraren tar inte emot yrkanden just nu</p>
   {{/if}}
-  {{ evt.mode }}
 </form>
 </template>
 
 
 <template name="admin">
-<input type="text" value="{{evt.name}}" class="txtName">
-<select>
-  <option value="open">OPEN</option>
-  <option value="closed">HALTED</option>
-</select><br>
+  <h3>Admin interface</h3>
+  <input type="text" value="{{evt.name}}" class="txtName">
+  <select>
+    <option value="open">OPEN</option>
+    <option value="closed">HALTED</option>
+  </select><br>
 
-<input type="text" class="txtPoint" placeholder="Add Point" ><br>
+  <input type="text" class="txtPoint" placeholder="Add Point" ><br>
 
-SM Beslutade<br>
-att <input type="text" class="txtDecide" placeholder="to do something">
+  SM Beslutade<br>
+  att <input type="text" class="txtDecide" placeholder="to do something">
 </template>
 
 
 <template name="plead">
+
+  <div class="marker">
+    <span class="radius secondary label">YRKANDE</span>
+  </div>
+
   {{#if image}}
     <img src="{{image}}" >
   {{/if}}
-  <small>{{ createdAt }}</small>
-  <p>{{text}} by {{creator.username}}</p>
+  <p>{{creator.username}} lade följande yrkande:</p>
+
+  <div class="yrkande">
+    <b>YRKANDE</b>
+    <p>{{ text }}</p>
+
+    {{#if atts}}
+    <b>Förslag till beslut</b>
+    <p>Mot bakgrund av ovanstående yrkar vi:</p>
+    <ul class="attsatser">
+      {{#each atts}}
+        {{#if text}}
+          <li>
+            {{text}}
+          </li>
+        {{/if}}
+      {{/each}}
+    </ul>
+    {{/if}}
+  </div>
+
+
 </template>
 
 <template name="point">
 
-  <h2>{{text}} <small style="font-size:8px">by {{creator.username}}</small></h2>
+  <h3>{{text}}</h3>
 
 </template>
 
 <template name="decision">
-  <b>SM Beslutade</b><br>
-  <em>att</em> {{ text }}
+  <div class="marker">
+    <span class="radius label">BESLUT</span>
+  </div>
+  <div class="indent">
+    <b>SM Beslutade</b><br>
+    <em>att</em> {{ text }}
+  </div>
 </template>
 
 

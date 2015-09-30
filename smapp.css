@@ -1,1 +1,49 @@
 /* CSS declarations go here */
+
+
+
+.magnetron {
+  padding: 100px 0;
+}
+
+p.meta-data {
+    font-size: 13px;
+    color: #BDBDBD;
+    text-transform: uppercase;
+    text-align: r;
+}
+
+.rightborder {
+    border-right: thin solid #F4F4F4;
+    padding: 10px 0;
+    position: relative;
+}
+
+.indent {
+  margin-left:20px;
+}
+
+.footer {
+  margin-top: 100px
+}
+.marker {
+    position: absolute;
+    right: 30px;
+    top:16px;
+}
+
+.yrkande {
+    padding: 20px;
+    background-color: #FAFAFA;
+}
+
+ul.attsatser {
+    list-style-position: inside;
+    list-style-type: none;
+}
+
+.attsatser li:before {
+    content: "att";
+    font-weight: 600;
+    padding-right: 10px;
+}
