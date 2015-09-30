@@ -24,7 +24,8 @@ Events = new Mongo.Collection("events");
 var Type = {
   PLEAD: "plead",
   POINT: "point",
-  BREAK: "break"
+  BREAK: "break",
+  DECISION: "decision"
 }
 
 var Mode = {
@@ -32,23 +33,43 @@ var Mode = {
   OPEN: "open"
 }
 
+/***************************************************************
+    ROUTES
+*/
+
 
 Router.route("/", function() {
   this.render("index")
 });
 
-Router.route("/event/:code", function() {
-  this.subscribe('events', {code:this.params.code}).wait()
+Router.route("/create", function() {
+  if (!Meteor.userId()) {
+    this.redirect("/");
+    return;
+  }
 
+
+  var code = parseInt(Math.random()*100) + "-" + parseInt(Math.random()*100) + "-" + parseInt(Math.random()*100);
+
+  Events.insert({
+    name: "Event " + code,
+    code: code,
+    owner: Meteor.userId(),
+    mode: Mode.OPEN
+  });
+
+  this.redirect("/event/"+code)
+
+})
+
+Router.route("/event/:code", function() {
   if (!Meteor.userId()) {
     this.redirect("/");
     return;
   }
   var evt = Events.findOne({code:this.params.code});
-  if (!evt) {
-    return;
-  }
-  var pleads = Pleads.find({event:evt});
+
+  var pleads = Pleads.find({event_id:evt._id});
   var event_owner = Meteor.users.findOne(evt.owner);
   this.render("plist", {data:{pleads: pleads, evt:evt, event_owner:event_owner}});
 });
@@ -59,6 +80,9 @@ Router.route("/login/:token", function() {
   })
 })
 
+/***************************************************************
+    CLIENT CODE
+*/
 if (Meteor.isClient) {
   // counter starts at 0
   Session.setDefault('counter', 0);
@@ -81,13 +105,15 @@ if (Meteor.isClient) {
   Template.plist.events({
     "submit #plead-form": function(event) {
       event.preventDefault();
+      if (this.evt.mode != Mode.OPEN) return;
 
       Pleads.insert({
         type: Type.PLEAD,
         creator: Meteor.user(),
         text: event.target.text.value,
-        event: this.evt,
-        image: event.target.imgurl.value
+        event_id: this.evt._id,
+        image: event.target.imgurl.value,
+        createdAt: new Date()
       });
 
       event.target.text.value = "";
@@ -99,9 +125,6 @@ if (Meteor.isClient) {
   });
 
   Template.plist.helpers({
-    isOpen: function() {
-      return this.evt.mode == Mode.OPEN;
-    },
     ownEvent: function() {
       return Meteor.userId() == this.evt.owner;
     },
@@ -110,19 +133,46 @@ if (Meteor.isClient) {
     }
   });
 
-  Template.admin.events({
-    "change .txtName": function(event) {
-      var code = $("input[name=event_code]").val();
-      var evt = getOrCreateEvent(code);
-      Events.update(evt._id, {
-        $set: {name:event.target.value}
+  Template.form.helpers({
+    isOpen: function () {
+      return this.evt.mode == Mode.OPEN;
+    }
+  });
+
+  function setEventValueHelper(field) {
+    return function(event) {
+      var obj = {};
+      obj[field] = event.target.value;
+
+      Events.update(this.evt._id, {
+        $set: obj
       });
+    }
+  }
+
+  Template.admin.events({
+    "change .txtName": setEventValueHelper("name"),
+    "change select": setEventValueHelper("mode"),
+    "change .txtDecide": function(event) {
+      Pleads.insert({
+        type: Type.DECISION,
+        creator: Meteor.user(),
+        text: event.target.value,
+        event_id: this.evt._id
+      });
+
+      event.target.value = "";
     },
-    "change select": function(event) {
-        var code = $("input[name=event_code]").val();
-        Events.update(this.evt._id, {
-          $set: {mode:event.target.value}
-        });
+    "change .txtPoint": function(event) {
+      console.log("asha");
+      Pleads.insert({
+        type: Type.POINT,
+        creator: Meteor.user(),
+        text: event.target.value,
+        event_id: this.evt._id
+      });
+
+      event.target.value = "";
     }
   })
 
@@ -139,6 +189,10 @@ if (Meteor.isClient) {
     }
   };
 }
+
+/***************************************************************
+    SERVER CODE
+*/
 
 if (Meteor.isServer) {
   var Future = Npm.require('fibers/future');

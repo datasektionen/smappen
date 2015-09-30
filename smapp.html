@@ -18,16 +18,7 @@
   <h1>{{evt.name}}</h1>
   <p>Created by {{ event_owner.username }} </p>
   {{#each pleads}}
-
-    {{#if equals type 'plead'}}
-      {{> plead}}
-    {{/if}}
-
-    {{#if equals type 'point'}}
-      {{> point}}
-    {{/if}}
-
-    <br>
+    {{> pleadenv}}
   {{/each}}
 
   {{#if currentUser}}
@@ -38,6 +29,21 @@
     {{> admin}}
   {{/if}}
 </template>
+<template name="pleadenv">
+  {{#if equals type 'plead'}}
+    {{> plead}}
+  {{/if}}
+
+  {{#if equals type 'point'}}
+    {{> point}}
+  {{/if}}
+
+  {{#if equals type 'decision' }}
+    {{>decision}}
+  {{/if}}
+      <br>
+</template>
+
 
 <template name="form">
 <form id="plead-form">
@@ -46,17 +52,25 @@
   <br>
   <textarea name=text ></textarea><br>
   <input type="text" name=imgurl placeholder="URL to image (optional)">
+  {{#if isOpen}}
   <input type="submit">
+  {{/if}}
+  {{ evt.mode }}
 </form>
 </template>
 
 
 <template name="admin">
 <input type="text" value="{{evt.name}}" class="txtName">
-<select name="state-selector">
-  <option value="halted">HALTED</option>
+<select>
   <option value="open">OPEN</option>
-</select>
+  <option value="closed">HALTED</option>
+</select><br>
+
+<input type="text" class="txtPoint" placeholder="Add Point" ><br>
+
+SM Beslutade<br>
+att <input type="text" class="txtDecide" placeholder="to do something">
 </template>
 
 
@@ -64,13 +78,19 @@
   {{#if image}}
     <img src="{{image}}" >
   {{/if}}
+  <small>{{ createdAt }}</small>
   <p>{{text}} by {{creator.username}}</p>
 </template>
 
 <template name="point">
 
-  <h3>{{text}} by {{creator.username}}</h3>
+  <h2>{{text}} <small style="font-size:8px">by {{creator.username}}</small></h2>
 
+</template>
+
+<template name="decision">
+  <b>SM Beslutade</b><br>
+  <em>att</em> {{ text }}
 </template>
 
 
