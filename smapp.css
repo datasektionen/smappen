@@ -6,7 +6,7 @@
   padding: 100px 0;
 }
 
-p.meta-data {
+.meta-data {
     font-size: 13px;
     color: #BDBDBD;
     text-transform: uppercase;
@@ -46,4 +46,14 @@ ul.attsatser {
     content: "att";
     font-weight: 600;
     padding-right: 10px;
+}
+.toggle-erase {
+  display: none;
+}
+.rightborder:hover .toggle-erase {
+  display: inline;
+}
+.erased * {
+    text-decoration: line-through;
+    opacity: .5;
 }

@@ -25,7 +25,8 @@ var Type = {
   PLEAD: "plead",
   POINT: "point",
   BREAK: "break",
-  DECISION: "decision"
+  DECISION: "decision",
+  TJING: "tjing"
 }
 
 var Mode = {
@@ -84,15 +85,14 @@ Router.route("/create", function() {
 })
 
 Router.route("/event/:code", function() {
-  if (!Meteor.userId()) {
-    this.redirect("/");
-    return;
-  }
   var evt = Events.findOne({code:this.params.code});
-
   var pleads = Pleads.find({event_id:evt._id});
   var event_owner = Meteor.users.findOne(evt.owner);
-  this.render("plist", {data:{pleads: pleads, evt:evt, event_owner:event_owner}});
+  this.render("plist", {data:{
+    pleads: pleads,
+    evt:evt,
+    event_owner:event_owner
+  }});
 });
 
 Router.route("/login/:token", function() {
@@ -128,7 +128,43 @@ if (Meteor.isClient) {
     });
 
   Template.plist.events({
-    "submit #plead-form": function(event) {
+    "click .logout": function() {
+      Meteor.logout()
+    },
+    "click #btnTjing": function() {
+      if (this.evt.mode != Mode.OPEN) return;
+
+      Pleads.insert({
+        type: Type.TJING,
+        creator: Meteor.user(),
+        event_id: this.evt._id,
+        createdAt: new Date()
+      });
+
+      $(event.target).fadeOut(0).delay(3333).fadeIn()
+    }
+  });
+
+  Template.plist.helpers({
+    ownEvent: function() {
+      return Meteor.userId() == this.evt.owner;
+    },
+    ownPlead: function() {
+      return Meteor.user() == this.plead.creator;
+    },
+    isOpen: function () {
+      return this.evt.mode == Mode.OPEN;
+    }
+  });
+
+  Template.form.helpers({
+    isOpen: function () {
+      return this.evt.mode == Mode.OPEN;
+    }
+  });
+
+  Template.form.events({
+    "submit form": function(event) {
       event.preventDefault();
       if (this.evt.mode != Mode.OPEN) return;
 
@@ -151,24 +187,15 @@ if (Meteor.isClient) {
       event.target.att0.value = "";
       event.target.att1.value = "";
       event.target.att2.value = "";
-    },
-    "click .logout": function() {
-      Meteor.logout()
-    },
-  });
-
-  Template.plist.helpers({
-    ownEvent: function() {
-      return Meteor.userId() == this.evt.owner;
-    },
-    ownPlead: function() {
-      return Meteor.user() == this.plead.creator;
     }
-  });
+  })
 
-  Template.form.helpers({
-    isOpen: function () {
-      return this.evt.mode == Mode.OPEN;
+  Template.pleadenv.events({
+    "click .toggle-erase": function() {
+      var er = ("erased" in this)?!this.erased:true;
+      Pleads.update(this._id, {
+        $set: {erased: er}
+      });
     }
   });
 
@@ -209,7 +236,7 @@ if (Meteor.isClient) {
 
       event.target.value = "";
     }
-  })
+  });
 
   Meteor.loginWithKth = function(token, callback) {
     if (!Meteor.user()) {

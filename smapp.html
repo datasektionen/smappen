@@ -1,5 +1,5 @@
 <head>
-  <title>smapp</title
+  <title>Smapp!</title
   <link rel="stylesheet" type="text/css" href="/normalize.css">
   <link rel="stylesheet" type="text/css" href="/foundation.min.css">
   <script src="/foundation.min.js"></script>
@@ -9,7 +9,7 @@
   <nav class="top-bar" data-topbar role="navigation">
   <ul class="title-area">
     <li class="name">
-      <h1><a href="#">SMAP!</a></h1>
+      <h1><a href="#">SMAPP!</a></h1>
     </li>
      <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
     <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
@@ -28,6 +28,7 @@
 </nav>
 
   {{> Router}}
+
 
 </body>
 
@@ -49,8 +50,13 @@
       <h2>Protokoll</h2>
       {{#each pleads}}
         <div class="row">
+          {{#if equals type 'tjing'}}
+          <div class="indent {{#if erased}}erased{{/if}}">
+            {{> pleadenv}}
+          </div>
+          {{else}}
           <div class="small-10 columns">
-            <div class="rightborder">
+            <div class="rightborder {{#if erased}}erased{{/if}}">
               {{> pleadenv}}
             </div>
           </div>
@@ -61,6 +67,8 @@
                 {{ creator.username }}
               </p>
           </div>
+
+          {{/if}}
         </div>
       {{/each}}
     </div>
@@ -68,13 +76,16 @@
   </div>
 
 <div class="footer">
-  <div class="row footer">
+  <div class="row">
 
     <div class="small-6 columns">
-      <h3>Skicka in Yrkande</h3>
       {{#if currentUser}}
-      {{> form}}
+        {{#if isOpen}}
+          <a href="#" class="button" data-reveal-id="yrkamodal">YRKA</a>
+          <a href="#" class="button" id="btnTjing">TJINGA</a>
+        {{/if}}
       {{/if}}
+
     </div>
     <div class="small-6 columns ">
         {{#if ownEvent}}
@@ -82,8 +93,16 @@
         {{/if}}
     </div>
   </div>
+
+
+  {{#if currentUser}}
+  {{> formmodal}}
+  {{/if}}
+
 </div>
 </template>
+
+
 <template name="pleadenv">
   {{#if equals type 'plead'}}
     {{> plead}}
@@ -96,68 +115,90 @@
   {{#if equals type 'decision' }}
     {{>decision}}
   {{/if}}
+
+  {{#if equals type 'tjing' }}
+    {{> tjing}}
+  {{/if}}
+  {{#if equals creator.username currentUser.username}}
+    <a href="#" class="toggle-erase">Erase</a>
+  {{/if}}
 </template>
 
 
 <template name="form">
-<form id="plead-form">
-  <div class="row">
-    <div class="large-12 columns">
-      <label>Skicka in som
-        <input type=text name=name value="{{currentUser.username}}" disabled="disabled" />
-      </label>
-    </div>
-  </div>
-  <div class="row">
-    <div class="large-12 columns">
-      <label>Bild-URL
-        <input type=text name=imgurl placeholder="Optional" />
-      </label>
-    </div>
-  </div>
 
-  <div class="row">
-    <div class="large-12 columns">
-      <label>Bakgrund
-        <textarea name=text placeholder="Vi har kämpat länge nog..."></textarea>
-      </label>
-    </div>
-  </div>
 
-  Jag yrkar på
-  <div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix"><em>att</em></span>
+  <form id="plead-form">
+    <div class="row collapse">
+      <div class="large-12 columns">
+        <label>Avsändare
+          <input type=text name=name value="{{currentUser.username}}" disabled="disabled" />
+        </label>
+      </div>
     </div>
-    <div class="small-9 large-10 columns">
-      <input name="att0" type="text" placeholder="vi ska vara seriösa">
+    <div class="row collapse">
+      <div class="large-12 columns">
+        <label>Bild-URL
+          <input type=text name=imgurl placeholder="Optional" />
+        </label>
+      </div>
     </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix"><em>att</em></span>
-    </div>
-    <div class="small-9 large-10 columns">
-      <input name="att1" type="text" >
-    </div>
-  </div>
-  <div class="row collapse">
-    <div class="small-3 large-2 columns">
-      <span class="prefix"><em>att</em></span>
-    </div>
-    <div class="small-9 large-10 columns">
-      <input name="att2" type="text">
-    </div>
-  </div>
 
-  {{#if isOpen}}
-  <input type="submit" class="button small">
-  {{else}}
-  <p>Sekreteraren tar inte emot yrkanden just nu</p>
-  {{/if}}
-</form>
+    <div class="row collapse">
+      <div class="large-12 columns">
+        <label>Bakgrund
+          <textarea name=text placeholder="Vi har kämpat länge nog..."></textarea>
+        </label>
+      </div>
+    </div>
+
+    Jag yrkar på
+    <div class="row collapse">
+      <div class="small-3 large-2 columns">
+        <span class="prefix"><em>att</em></span>
+      </div>
+      <div class="small-9 large-10 columns">
+        <input name="att0" type="text" placeholder="vi ska vara seriösa">
+      </div>
+    </div>
+    <div class="row collapse">
+      <div class="small-3 large-2 columns">
+        <span class="prefix"><em>att</em></span>
+      </div>
+      <div class="small-9 large-10 columns">
+        <input name="att1" type="text" >
+      </div>
+    </div>
+    <div class="row collapse">
+      <div class="small-3 large-2 columns">
+        <span class="prefix"><em>att</em></span>
+      </div>
+      <div class="small-9 large-10 columns">
+        <input name="att2" type="text">
+      </div>
+    </div>
+
+    {{#if isOpen}}
+    <input type="submit" class="button small">
+    {{else}}
+    <p>Sekreteraren tar inte emot yrkanden just nu</p>
+    {{/if}}
+  </form>
+
+<script>
+console.log("g")
+  $(document).foundation();
+</script>
 </template>
 
+<template name="formmodal">
+  <div id="yrkamodal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+    <h2 id="modalTitle">Skapa yrkande</h2>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+  {{> form}}
+</div>
+
+</template>
 
 <template name="admin">
   <h3>Admin interface</h3>
@@ -183,7 +224,6 @@
   {{#if image}}
     <img src="{{image}}" >
   {{/if}}
-  <p>{{creator.username}} lade följande yrkande:</p>
 
   <div class="yrkande">
     <b>YRKANDE</b>
@@ -221,6 +261,12 @@
     <b>SM Beslutade</b><br>
     <em>att</em> {{ text }}
   </div>
+</template>
+
+<template name="tjing">
+  <small class="meta-data">
+    {{ creator.username }} tjingar detta.
+  </small>
 </template>
 
 
