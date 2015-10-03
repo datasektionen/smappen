@@ -159,6 +159,10 @@ if (Meteor.isClient) {
     },
     isOpen: function () {
       return this.evt.mode == Mode.OPEN;
+    },
+    qr_url: function() {
+      return "https://chart.googleapis.com/chart?chs=500x500&cht=qr&choe=UTF-8&chl="
+        + encodeURIComponent(document.location.href);
     }
   });
 
@@ -347,7 +351,7 @@ if (Meteor.isClient) {
   /**
    Make the pages stick to the bottom*
    */
-  var didscroll = false;
+  var didscroll = true;
   function closeToBottomAndWillScroll() {
     if(!didscroll)
       window.scrollTo(0,document.body.scrollHeight);
