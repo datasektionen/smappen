@@ -4,13 +4,13 @@
   <link rel="stylesheet" type="text/css" href="/normalize.css">
   <link rel="stylesheet" type="text/css" href="/foundation.min.css">
   <script src="/foundation.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
 
 
   {{> Router}}
-
 
 </body>
 
@@ -51,7 +51,6 @@
   <div class="row">
 
     <div class="small-12 columns">
-      <h2>Protokoll</h2>
       {{#each pleads}}
         <div class="row">
           {{#if equals type 'simple'}}
@@ -64,12 +63,12 @@
               {{> pleadenv}}
             </div>
             {{else}}
-            <div class="small-10 columns">
+            <div class="small-12 medium-10 columns">
               <div class="rightborder erasable {{#if erased}}erased{{/if}}">
                 {{> pleadenv}}
               </div>
             </div>
-            <div class="small-2 columns">
+            <div class="small-0 medium-2 columns">
 
                 <p class="meta-data">
                   {{ formatDate createdAt }}<br>
@@ -88,7 +87,7 @@
 <div class="footer">
   <div class="row">
 
-    <div class="small-6 columns">
+    <div class="small-12 medium-6 columns">
       {{#if currentUser}}
         {{#if isOpen}}
           <a href="#" class="button" data-reveal-id="yrkamodal">YRKA</a>
@@ -97,7 +96,7 @@
       {{/if}}
 
     </div>
-    <div class="small-6 columns ">
+    <div class="small-12 medium-6 columns ">
         {{#if ownEvent}}
           {{> admin}}
         {{/if}}
@@ -225,7 +224,7 @@ console.log("g")
   <input type="text" placeholder="Enkelt inlägg (ctrl+s)" class="txtSimple">
 
   SM Beslutade<br>
-  att <input type="text" class="txtDecide" placeholder="att bordlägga (ctrl+z)">
+  att <input type="text" class="txtDecide" placeholder="bordlägga (ctrl+z)">
   <input type="text" class="txtPoint" placeholder="Ny rubrik (ctrl+r)" >
   <input type="text" class="txtVote" placeholder="Är det fest? (ctrl+w)">
 

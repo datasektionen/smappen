@@ -69,13 +69,20 @@ Router.route("/", function() {
 });
 
 Router.route("/create", function() {
+  var code = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+  this.redirect("/create/"+code)
+});
+
+
+Router.route("/create/:code", function() {
   if (!Meteor.userId()) {
     this.redirect("/");
     return;
   }
-
-
-  var code = parseInt(Math.random()*100) + "-" + parseInt(Math.random()*100) + "-" + parseInt(Math.random()*100);
+  var code = this.params.code;
 
   Events.insert({
     name: "Event " + code,
@@ -86,7 +93,7 @@ Router.route("/create", function() {
 
   this.redirect("/event/"+code)
 
-})
+});
 
 Router.route("/event/:code", function() {
   var evt = Events.findOne({code:this.params.code});
