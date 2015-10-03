@@ -26,7 +26,9 @@ var Type = {
   POINT: "point",
   BREAK: "break",
   DECISION: "decision",
-  TJING: "tjing"
+  TJING: "tjing",
+  VOTE: "vote",
+  SIMPLE: "simple"
 }
 
 var Mode = {
@@ -61,7 +63,9 @@ Date.prototype.xformat = function(format) //author: meizz
 
 
 Router.route("/", function() {
-  this.render("index")
+  var evts = Events.find({owner: Meteor.userId()});
+
+  this.render("index", {data: {evts:evts}});
 });
 
 Router.route("/create", function() {
@@ -96,8 +100,9 @@ Router.route("/event/:code", function() {
 });
 
 Router.route("/login/:token", function() {
+  this.render("login");
   Meteor.loginWithKth(this.params.token, function() {
-    Router.go("/")
+    Router.go("/");
   })
 })
 
@@ -210,33 +215,120 @@ if (Meteor.isClient) {
     }
   }
 
+  function handleShortcuts(event) {
+    var map = {
+      19: ".txtSimple",   // S
+      23: ".txtVote",     // W
+      18: ".txtPoint",    // R
+      26: ".txtDecide"    // Z
+    }
+
+    if (event.ctrlKey && event.charCode in map) {
+      $(map[event.charCode]).focus();
+    }
+  }
+
   Template.admin.events({
     "change .txtName": setEventValueHelper("name"),
     "change select": setEventValueHelper("mode"),
-    "change .txtDecide": function(event) {
-      Pleads.insert({
-        type: Type.DECISION,
-        creator: Meteor.user(),
-        text: event.target.value,
-        event_id: this.evt._id,
-        createdAt: new Date()
-      });
+    "keypress .txtDecide": function(event) {
+      if (handleShortcuts(event)) return;
+      if (event.charCode == 13) {
+        Pleads.insert({
+          type: Type.DECISION,
+          creator: Meteor.user(),
+          text: event.target.value,
+          event_id: this.evt._id,
+          createdAt: new Date()
+        });
 
-      event.target.value = "";
+        event.target.value = "";
+      }
     },
-    "change .txtPoint": function(event) {
-      console.log("asha");
-      Pleads.insert({
-        type: Type.POINT,
-        creator: Meteor.user(),
-        text: event.target.value,
-        event_id: this.evt._id,
-        createdAt: new Date()
-      });
+    "keypress .txtVote": function(event) {
+      if (handleShortcuts(event)) return;
+      if (event.charCode == 13) {
+        Pleads.insert({
+          type: Type.VOTE,
+          creator: Meteor.user(),
+          text: event.target.value,
+          event_id: this.evt._id,
+          createdAt: new Date(),
+          yesvotes: 0,
+          novotes: 0,
+          voters: []
+        });
 
-      event.target.value = "";
+        event.target.value = "";
+      }
+    },
+    "keypress .txtPoint": function(event) {
+      if (handleShortcuts(event)) return;
+      if (event.charCode == 13) {
+        Pleads.insert({
+          type: Type.POINT,
+          creator: Meteor.user(),
+          text: event.target.value,
+          event_id: this.evt._id,
+          createdAt: new Date()
+        });
+
+        event.target.value = "";
+      }
+    },
+    "keypress .txtSimple": function(event) {
+      if (handleShortcuts(event)) return;
+      if (event.charCode == 13) {
+        Pleads.insert({
+          type: Type.SIMPLE,
+          creator: Meteor.user(),
+          text: event.target.value,
+          event_id: this.evt._id,
+          createdAt: new Date()
+        });
+
+        event.target.value = "";
+
+      }
     }
   });
+
+  Template.vote.helpers({
+    isVotingOpen: function() {
+      return !this.closed;
+    },
+    hasNotVoted: function() {
+      return this.voters.indexOf(Meteor.user().username) === -1;
+    },
+    ownEvent: function(evt) {
+      return Meteor.userId() == evt.owner;
+    },
+  });
+
+  Template.vote.events({
+    "click .yes-box": function() {
+      if (this.voters.indexOf(Meteor.user().username) === -1) {
+        Pleads.update(this._id, {
+          $inc: {yesvotes: 1},
+          $push: {voters: Meteor.user().username}
+        });
+      }
+    },
+    "click .no-box": function() {
+      if (this.voters.indexOf(Meteor.user().username) === -1) {
+        Pleads.update(this._id, {
+          $inc: {novotes: 1},
+          $push: {voters: Meteor.user().username}
+        });
+      }
+    },
+    "click .off-box": function() {
+        Pleads.update(this._id, {
+          $set: {closed: true}
+        });
+
+    }
+  })
 
   Meteor.loginWithKth = function(token, callback) {
     if (!Meteor.user()) {
@@ -250,6 +342,28 @@ if (Meteor.isClient) {
         callback()
     }
   };
+
+
+  /**
+   Make the pages stick to the bottom*
+   */
+  var didscroll = false;
+  function closeToBottomAndWillScroll() {
+    if(!didscroll)
+      window.scrollTo(0,document.body.scrollHeight);
+
+    if($(document).scrollTop() + window.innerHeight > $(document).height() - 300) {
+      window.scrollTo(0,document.body.scrollHeight);
+      didscroll = false;
+    }
+  }
+  $(window).scroll(function() {
+    didscroll = true;
+  });
+  setInterval(closeToBottomAndWillScroll, 2000);
+
+
+
 }
 
 /***************************************************************
@@ -295,7 +409,7 @@ if (Meteor.isServer) {
             username: username,
             usomething: usomething
           })
-          console.log("created", userId)
+
           future.return({
             userId: userId,
             token: loginRequest.token

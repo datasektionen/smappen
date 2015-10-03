@@ -7,7 +7,7 @@
 }
 
 .meta-data {
-    font-size: 13px;
+    font-size: 10px;
     color: #BDBDBD;
     text-transform: uppercase;
     text-align: r;
@@ -50,10 +50,14 @@ ul.attsatser {
 .toggle-erase {
   display: none;
 }
-.rightborder:hover .toggle-erase {
+.erasable:hover .toggle-erase {
   display: inline;
 }
 .erased * {
     text-decoration: line-through;
     opacity: .5;
+}
+
+.simple {
+  margin:  0;
 }

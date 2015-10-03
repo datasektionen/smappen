@@ -1,15 +1,24 @@
 <head>
-  <title>Smapp!</title
+  <title>SMAPP!</title
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="/normalize.css">
   <link rel="stylesheet" type="text/css" href="/foundation.min.css">
   <script src="/foundation.min.js"></script>
 </head>
 
 <body>
-  <nav class="top-bar" data-topbar role="navigation">
+
+
+  {{> Router}}
+
+
+</body>
+
+<template name="plist">
+<nav class="top-bar" data-topbar role="navigation">
   <ul class="title-area">
     <li class="name">
-      <h1><a href="#">SMAPP!</a></h1>
+      <h1><a href="/">SMAPP!</a></h1>
     </li>
      <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
     <li class="toggle-topbar menu-icon"><a href="#"><span>Menu</span></a></li>
@@ -20,22 +29,16 @@
     <ul class="right">
       {{#if currentUser}}
         <li><a class="logout" href="#">Welcome {{currentUser.username}}! Logout</a></li>
-    	{{else}}
+      {{else}}
         <li class="active"><a href="{{loginurl}}">Login</a></li>
       {{/if}}
     </ul>
   </section>
 </nav>
 
-  {{> Router}}
-
-
-</body>
-
-<template name="plist">
 <div class="row magnetron">
   <div class="small-2 columns">
-    <img src="http://www.nada.kth.se/~lrunhem/skold.png">
+    <img src="http://datasektionen.se/sektionen/grafik/skold-white.png">
   </div>
   <div class="small-10 columns">
 
@@ -50,24 +53,30 @@
       <h2>Protokoll</h2>
       {{#each pleads}}
         <div class="row">
-          {{#if equals type 'tjing'}}
-          <div class="indent {{#if erased}}erased{{/if}}">
+          {{#if equals type 'simple'}}
+          <div class="indent erasable {{#if erased}}erased{{/if}}">
             {{> pleadenv}}
           </div>
           {{else}}
-          <div class="small-10 columns">
-            <div class="rightborder {{#if erased}}erased{{/if}}">
+            {{#if equals type 'tjing'}}
+            <div class="indent {{#if erased}}erased{{/if}}">
               {{> pleadenv}}
             </div>
-          </div>
-          <div class="small-2 columns">
+            {{else}}
+            <div class="small-10 columns">
+              <div class="rightborder erasable {{#if erased}}erased{{/if}}">
+                {{> pleadenv}}
+              </div>
+            </div>
+            <div class="small-2 columns">
 
-              <p class="meta-data">
-                {{ formatDate createdAt }}<br>
-                {{ creator.username }}
-              </p>
-          </div>
+                <p class="meta-data">
+                  {{ formatDate createdAt }}<br>
+                  {{ creator.username }}
+                </p>
+            </div>
 
+            {{/if}}
           {{/if}}
         </div>
       {{/each}}
@@ -96,7 +105,7 @@
 
 
   {{#if currentUser}}
-  {{> formmodal}}
+    {{> formmodal}}
   {{/if}}
 
 </div>
@@ -119,6 +128,15 @@
   {{#if equals type 'tjing' }}
     {{> tjing}}
   {{/if}}
+
+  {{#if equals type 'vote' }}
+    {{> vote}}
+  {{/if}}
+
+  {{#if equals type 'simple' }}
+    {{> simple}}
+  {{/if}}
+
   {{#if equals creator.username currentUser.username}}
     <a href="#" class="toggle-erase">Erase</a>
   {{/if}}
@@ -202,24 +220,28 @@ console.log("g")
 
 <template name="admin">
   <h3>Admin interface</h3>
+
+  <input type="text" placeholder="Enkelt inlägg (ctrl+s)" class="txtSimple">
+
+  SM Beslutade<br>
+  att <input type="text" class="txtDecide" placeholder="att bordlägga (ctrl+z)">
+  <input type="text" class="txtPoint" placeholder="Ny rubrik (ctrl+r)" >
+  <input type="text" class="txtVote" placeholder="Är det fest? (ctrl+w)">
+
   <input type="text" value="{{evt.name}}" class="txtName">
   <select>
     <option value="open">OPEN</option>
     <option value="closed">HALTED</option>
   </select><br>
 
-  <input type="text" class="txtPoint" placeholder="Add Point" ><br>
 
-  SM Beslutade<br>
-  att <input type="text" class="txtDecide" placeholder="to do something">
 </template>
 
+<template name="simple">
+  <p class="simple">{{text}}</p>
+</template>
 
 <template name="plead">
-
-  <div class="marker">
-    <span class="radius secondary label">YRKANDE</span>
-  </div>
 
   {{#if image}}
     <img src="{{image}}" >
@@ -248,9 +270,56 @@ console.log("g")
 </template>
 
 <template name="point">
-
   <h3>{{text}}</h3>
+</template>
 
+<template name="vote">
+  <div class="yrkande clearfix">
+    <p><b>Omröstning inledd: {{ text }}</b></p><br>
+
+
+    <div class="small-12 medium-6 columns">
+      {{#if isVotingOpen}}
+        {{#if hasNotVoted}}
+          <a href="#" class="button success yes-box">RÖSTA JA</a>
+          <a href="#" class="button alert no-box">RÖSTA NEJ</a>
+
+        {{else}}
+          <div data-alert class="success alert-box">
+            Du har röstat.
+          </div>
+        {{/if}}
+
+        {{#if ownEvent ../evt }}
+        <a href="#" class="button secondary off-box">Stäng omröstning</a>
+        {{/if}}
+
+      {{else}}
+        <div data-alert class="secondary alert-box">
+          Röstningen är avslutad.
+        </div>
+
+      {{/if}}
+    </div>
+    <div class="small-12 medium-6 columns">
+      <h2>JA:
+        <span class="success label"><h2>{{ yesvotes }}</h2> </span>
+        NEJ:
+        <span class="warning label"><h2>{{ novotes }}</h2> </span>
+      </h2>
+    </div>
+
+    {{#if isVotingOpen}}
+    {{else}}
+      <div class="small-12 columns">
+        <p>Röster från följande personer registrerades:<br>
+          {{#each voters}}
+            {{this}}
+          {{/each}}
+        </p>
+      </div>
+    {{/if}}
+  </div>
 </template>
 
 <template name="decision">
@@ -271,5 +340,20 @@ console.log("g")
 
 
 <template name="index">
-  <p>Nothing to see here</p>
+  <div class="row">
+    <div class="small-12 medium-4 columns">
+      {{#if evts}}
+      <h3>Dina events</h3>
+      <ul class="side-nav">
+        {{#each evts}}
+          <li><a href="/event/{{code}}">{{name}}</a></li>
+        {{/each}}
+      </ul>
+      {{/if}}
+    </div>
+  </div>
+</template>
+
+<template name="login">
+  <h1>Logging in, please hold</h1>
 </template>
