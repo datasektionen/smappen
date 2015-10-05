@@ -166,7 +166,7 @@
     <div class="row collapse">
       <div class="large-12 columns">
         <label>Bakgrund
-          <textarea name=text placeholder="Vi har kämpat länge nog..."></textarea>
+          <textarea name=text placeholder="Vi har kämpat länge nog... (Markdown stödjs)"></textarea>
         </label>
       </div>
     </div>
@@ -250,7 +250,11 @@ console.log("g")
 
   <div class="yrkande">
     <b>YRKANDE</b>
-    <p>{{ text }}</p>
+    <p>
+      {{#markdown}}
+{{ text }}
+      {{/markdown}}
+    </p>
 
     {{#if atts}}
     <b>Förslag till beslut</b>
